@@ -1,6 +1,5 @@
 
 import { Command } from 'ckeditor5/src/core';
-// import { isLinkableElement } from '@ckeditor/ckeditor5-link/src/utils';
 
 const LINK_MODEL_ATTRIBUTE_NAME = 'linkHref';
 
