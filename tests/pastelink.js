@@ -5,6 +5,8 @@ import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor'
 import LinkEditing from '@ckeditor/ckeditor5-link/src/linkediting';
 import PasteLink from '../src/pastelink';
 
+import { setData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
+
 /* global document, DataTransfer */
 
 describe( 'PasteLink', () => {
@@ -50,6 +52,9 @@ describe( 'PasteLink', () => {
 
 			function generateValidPlainTextTestCase( pastedPlainText ) {
 				it( `works for plain text: ${ pastedPlainText }`, () => {
+					// A linkable text needs to be selected.
+					setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
 					const dataTransfer = new DataTransfer();
 					dataTransfer.setData( 'text/plain', pastedPlainText );
 					const pasteStub = sinon.stub();
@@ -75,6 +80,9 @@ describe( 'PasteLink', () => {
 
 		describe( 'invalid URL handling', () => {
 			it( 'skips simple text', () => {
+				// A linkable text needs to be selected.
+				setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
 				const dataTransfer = new DataTransfer();
 				dataTransfer.setData( 'text/plain', 'foo' );
 				const pasteStub = sinon.stub();
@@ -95,6 +103,9 @@ describe( 'PasteLink', () => {
 			} );
 
 			it( 'skips empty data transfer', () => {
+				// A linkable text needs to be selected.
+				setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
 				const dataTransfer = new DataTransfer();
 				const pasteStub = sinon.stub();
 
@@ -114,6 +125,9 @@ describe( 'PasteLink', () => {
 			} );
 
 			it( 'skips unhandled protocols', () => {
+				// A linkable text needs to be selected.
+				setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
 				const dataTransfer = new DataTransfer();
 				dataTransfer.setData( 'text/plain', 'custom://reddit.com' );
 				const pasteStub = sinon.stub();

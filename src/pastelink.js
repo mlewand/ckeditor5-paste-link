@@ -28,7 +28,15 @@ export default class PasteLink extends Plugin {
 				return;
 			}
 
-			editor.execute( 'applyLink', pastedURL );
+			const command = editor.commands.get( 'applyLink' );
+
+			if ( !command.isEnabled ) {
+				// Could be disabled if selected element can not have a link. In this case
+				// we want to proceed with uninterrupted handling.
+				return;
+			}
+
+			command.execute( pastedURL );
 
 			stopEvents( eventInfo, clipboardData );
 		} );

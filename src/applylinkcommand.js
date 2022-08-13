@@ -12,7 +12,7 @@ export default class ApplyLinkCommand extends Command {
 	 * @inheritDoc
 	 */
 	refresh() {
-		this.isEnabled = true;
+		this.isEnabled = this._canExecuteFor( this.editor.model.document.selection );
 	}
 
 	/**
@@ -33,5 +33,29 @@ export default class ApplyLinkCommand extends Command {
 				}
 			}
 		} );
+	}
+
+	/**
+	 * Tells whether command can be applied to a given selection.
+	 *
+	 * Reason why this isn't checked
+	 *
+	 * @private
+	 * @param {module:engine/model/selection~Selection} selection
+	 * @returns {Boolean}
+	 */
+	_canExecuteFor( selection ) {
+		for ( const range of selection.getRanges() ) {
+			for ( const { item } of range ) {
+				if ( this.editor.model.schema.checkAttribute( item, LINK_MODEL_ATTRIBUTE_NAME ) ) {
+					// It's crucial for performance reasons to leave early here. You don't want to
+					// iterate though all selected elements in case someone used select all feature in
+					// a huge document.
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

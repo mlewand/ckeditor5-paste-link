@@ -28,6 +28,19 @@ describe( 'ApplyLinkCommand', () => {
 
 		model = editor.model;
 		command = new ApplyLinkCommand( editor );
+
+		// Custom elements.
+		model.schema.register( 'non-linkable', {
+			isObject: true,
+			allowIn: 'paragraph'
+		} );
+
+		const { conversion } = editor;
+
+		conversion.elementToElement( {
+			model: 'non-linkable',
+			view: 'non-linkable-element'
+		} );
 	} );
 
 	afterEach( () => {
@@ -86,18 +99,6 @@ describe( 'ApplyLinkCommand', () => {
 		} );
 
 		it( 'won\'t apply URL model items that doesn\'t support it', () => {
-			model.schema.register( 'non-linkable', {
-				isObject: true,
-				allowIn: 'paragraph'
-			} );
-
-			const { conversion } = editor;
-
-			conversion.elementToElement( {
-				model: 'non-linkable',
-				view: 'non-linkable-element'
-			} );
-
 			setData( model, '<paragraph>[foo <non-linkable></non-linkable>bar] baz</paragraph>' );
 
 			command.execute( 'http://reddit.com' );
@@ -106,6 +107,26 @@ describe( 'ApplyLinkCommand', () => {
 				'<non-linkable></non-linkable>' +
 				'<$text linkHref="http://reddit.com">bar</$text>]' +
 				' baz</paragraph>' );
+		} );
+	} );
+
+	describe( '_canExecuteFor()', () => {
+		it( 'works correctly for text', () => {
+			setData( model, '<paragraph>f[o]o</paragraph>' );
+
+			expect( command._canExecuteFor( model.document.selection ) ).to.be.true;
+		} );
+
+		it( 'works correctly non-linkable alone', () => {
+			setData( model, '<paragraph>f[<non-linkable></non-linkable>]o</paragraph>' );
+
+			expect( command._canExecuteFor( model.document.selection ) ).to.be.false;
+		} );
+
+		it( 'works correctly with mixed content: text and non-linkable', () => {
+			setData( model, '<paragraph>f[o<non-linkable></non-linkable>]o</paragraph>' );
+
+			expect( command._canExecuteFor( model.document.selection ) ).to.be.true;
 		} );
 	} );
 } );
