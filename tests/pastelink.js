@@ -1,6 +1,5 @@
 import Essentials from '@ckeditor/ckeditor5-essentials/src/essentials';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
-import Heading from '@ckeditor/ckeditor5-heading/src/heading';
 import ClassicEditor from '@ckeditor/ckeditor5-editor-classic/src/classiceditor';
 import LinkEditing from '@ckeditor/ckeditor5-link/src/linkediting';
 import PasteLink from '../src/pastelink';
@@ -10,25 +9,21 @@ import { setData } from '@ckeditor/ckeditor5-engine/src/dev-utils/model';
 /* global document, DataTransfer */
 
 describe( 'PasteLink', () => {
-	let domElement, editor;
+	let domElement, editor, applyLinkCommand;
 
 	beforeEach( async () => {
 		domElement = document.createElement( 'div' );
 		document.body.appendChild( domElement );
 
-		editor = await ClassicEditor.create( domElement, {
-			plugins: [
-				Paragraph,
-				Heading,
-				Essentials,
-				PasteLink
-			]
-		} );
+		editor = await createEditor();
+
+		applyLinkCommand = editor.commands.get( 'applyLink' );
 	} );
 
-	afterEach( () => {
+	afterEach( async () => {
 		domElement.remove();
-		return editor.destroy();
+		await editor.destroy();
+		editor = null;
 	} );
 
 	it( 'is named', () => {
@@ -55,25 +50,10 @@ describe( 'PasteLink', () => {
 					// A linkable text needs to be selected.
 					setData( editor.model, '<paragraph>[foo]</paragraph>' );
 
-					const dataTransfer = new DataTransfer();
-					dataTransfer.setData( 'text/plain', pastedPlainText );
-					const pasteStub = sinon.stub();
-					const preventDefaultStub = sinon.stub();
+					const pasteEvent = pastePlainText( editor, pastedPlainText );
 
-					const doc = editor.editing.view.document;
-
-					doc.on( 'paste', pasteStub, {
-						priority: 'low'
-					} );
-
-					doc.fire( 'paste', {
-						dataTransfer,
-						preventDefault: preventDefaultStub,
-						stopPropagation: sinon.stub()
-					} );
-
-					expect( preventDefaultStub.calledOnce ).to.be.true;
-					expect( pasteStub.callCount ).to.equal( 0 );
+					expect( pasteEvent.preventDefault.calledOnce ).to.be.true;
+					expect( applyLinkCommand.execute.callCount ).to.eql( 1 );
 				} );
 			}
 		} );
@@ -83,23 +63,9 @@ describe( 'PasteLink', () => {
 				// A linkable text needs to be selected.
 				setData( editor.model, '<paragraph>[foo]</paragraph>' );
 
-				const dataTransfer = new DataTransfer();
-				dataTransfer.setData( 'text/plain', 'foo' );
-				const pasteStub = sinon.stub();
+				pastePlainText( editor, 'foo' );
 
-				const doc = editor.editing.view.document;
-
-				doc.on( 'paste', pasteStub, {
-					priority: 'low'
-				} );
-
-				doc.fire( 'paste', {
-					dataTransfer,
-					preventDefault: sinon.stub(),
-					stopPropagation: sinon.stub()
-				} );
-
-				expect( pasteStub.callCount ).to.equal( 1 );
+				expect( applyLinkCommand.execute.callCount ).to.equal( 0 );
 			} );
 
 			it( 'skips empty data transfer', () => {
@@ -107,13 +73,8 @@ describe( 'PasteLink', () => {
 				setData( editor.model, '<paragraph>[foo]</paragraph>' );
 
 				const dataTransfer = new DataTransfer();
-				const pasteStub = sinon.stub();
 
 				const doc = editor.editing.view.document;
-
-				doc.on( 'paste', pasteStub, {
-					priority: 'low'
-				} );
 
 				doc.fire( 'paste', {
 					dataTransfer,
@@ -121,31 +82,97 @@ describe( 'PasteLink', () => {
 					stopPropagation: sinon.stub()
 				} );
 
-				expect( pasteStub.callCount ).to.equal( 1 );
+				expect( applyLinkCommand.execute.callCount ).to.equal( 0 );
 			} );
 
 			it( 'skips unhandled protocols', () => {
 				// A linkable text needs to be selected.
 				setData( editor.model, '<paragraph>[foo]</paragraph>' );
 
-				const dataTransfer = new DataTransfer();
-				dataTransfer.setData( 'text/plain', 'custom://reddit.com' );
-				const pasteStub = sinon.stub();
+				pastePlainText( editor, 'custom://reddit.com' );
 
-				const doc = editor.editing.view.document;
-
-				doc.on( 'paste', pasteStub, {
-					priority: 'low'
-				} );
-
-				doc.fire( 'paste', {
-					dataTransfer,
-					preventDefault: sinon.stub(),
-					stopPropagation: sinon.stub()
-				} );
-
-				expect( pasteStub.callCount ).to.equal( 1 );
+				expect( applyLinkCommand.execute.callCount ).to.eql( 0 );
 			} );
 		} );
 	} );
+
+	describe( 'config.protocols', () => {
+		it( 'allows for new protocols', async () => {
+			editor = await createEditor( {
+				plugins: [
+					Paragraph,
+					Essentials,
+					PasteLink
+				],
+				pasteLink: {
+					protocols: [ 'my-custom-protocol' ]
+				}
+			} );
+
+			// A linkable text needs to be selected.
+			setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
+			pastePlainText( editor, 'my-custom-protocol://reddit.com' );
+
+			expect( applyLinkCommand.execute.callCount ).to.equal( 1 );
+			sinon.assert.calledWithExactly( applyLinkCommand.execute, 'my-custom-protocol://reddit.com' );
+		} );
+
+		it( 'default protocols can be removed', async () => {
+			editor = await createEditor( {
+				plugins: [
+					Paragraph,
+					Essentials,
+					PasteLink
+				],
+				pasteLink: {
+					protocols: [ 'foo' ]
+				}
+			} );
+
+			// A linkable text needs to be selected.
+			setData( editor.model, '<paragraph>[foo]</paragraph>' );
+
+			pastePlainText( editor, 'https://reddit.com' );
+
+			expect( applyLinkCommand.execute.callCount ).to.equal( 0 );
+		} );
+	} );
+
+	async function createEditor( customConfig ) {
+		// If a previous editor already exists destroy it.
+		if ( editor ) {
+			await editor.destroy();
+		}
+
+		const ret = await ClassicEditor.create( domElement, customConfig || {
+			plugins: [
+				Paragraph,
+				Essentials,
+				PasteLink
+			]
+		} );
+
+		editor = ret;
+
+		applyLinkCommand = ret.commands.get( 'applyLink' );
+
+		sinon.spy( applyLinkCommand, 'execute' );
+
+		return ret;
+	}
+
+	function pastePlainText( editor, text ) {
+		const dataTransfer = new DataTransfer();
+		dataTransfer.setData( 'text/plain', text );
+		const pasteEvent = {
+			dataTransfer,
+			preventDefault: sinon.stub(),
+			stopPropagation: sinon.stub()
+		};
+
+		editor.editing.view.document.fire( 'paste', pasteEvent );
+
+		return pasteEvent;
+	}
 } );
