@@ -14,7 +14,7 @@ import ImageUpload from '@ckeditor/ckeditor5-image/src/imageupload';
 import Base64UploadAdapter from '@ckeditor/ckeditor5-upload/src/adapters/base64uploadadapter';
 import Indent from '@ckeditor/ckeditor5-indent/src/indent';
 import Italic from '@ckeditor/ckeditor5-basic-styles/src/italic';
-import Link from '@ckeditor/ckeditor5-link/src/link';
+import { Link, LinkImage } from '@ckeditor/ckeditor5-link';
 import List from '@ckeditor/ckeditor5-list/src/list';
 import MediaEmbed from '@ckeditor/ckeditor5-media-embed/src/mediaembed';
 import Paragraph from '@ckeditor/ckeditor5-paragraph/src/paragraph';
@@ -44,6 +44,7 @@ ClassicEditor
 			Indent,
 			Italic,
 			Link,
+			LinkImage,
 			List,
 			MediaEmbed,
 			Paragraph,
