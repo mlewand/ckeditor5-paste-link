@@ -1,11 +1,11 @@
-import { MyPlugin as MyPluginDll, icons } from '../src';
-import MyPlugin from '../src/myplugin';
+import { PasteLink as PasteLinkDll, icons } from '../src';
+import PasteLink from '../src/pastelink';
 
 import ckeditor from './../theme/icons/ckeditor.svg';
 
-describe( 'CKEditor5 MyPlugin DLL', () => {
-	it( 'exports MyPlugin', () => {
-		expect( MyPluginDll ).to.equal( MyPlugin );
+describe( 'CKEditor5 PasteLink DLL', () => {
+	it( 'exports PasteLink', () => {
+		expect( PasteLinkDll ).to.equal( PasteLink );
 	} );
 
 	describe( 'icons', () => {

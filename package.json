@@ -1,15 +1,16 @@
 {
   "name": "@mlewand/ckeditor5-paste-link",
   "version": "0.0.1",
-  "description": "A plugin for CKEditor 5.",
+  "description": "CKEditor 5 plugin that links the selected content with an URL from the clipboard.",
   "keywords": [
     "ckeditor",
     "ckeditor5",
     "ckeditor 5",
+    "link",
+    "ckeditor5 link",
     "ckeditor5-feature",
     "ckeditor5-plugin",
-    "ckeditor5-dll",
-    "ckeditor5-package-generator"
+    "ckeditor5-dll"
   ],
   "main": "src/index.js",
   "license": "MIT",
