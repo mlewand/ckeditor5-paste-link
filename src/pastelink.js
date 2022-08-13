@@ -1,5 +1,6 @@
 import { Plugin } from 'ckeditor5/src/core';
 import { LinkEditing } from '@ckeditor/ckeditor5-link';
+import ApplyLinkCommand from './applylinkcommand';
 
 /* global URL */
 
@@ -18,12 +19,16 @@ export default class PasteLink extends Plugin {
 		const { editor } = this;
 		const viewDocument = editor.editing.view.document;
 
+		this._registerCommands();
+
 		this.listenTo( viewDocument, 'paste', ( eventInfo, clipboardData ) => {
 			const pastedURL = clipboardData.dataTransfer.getData( 'text/plain' );
 
 			if ( !isValidURL( pastedURL ) ) {
 				return;
 			}
+
+			editor.execute( 'applyLink', pastedURL );
 
 			stopEvents( eventInfo, clipboardData );
 		} );
@@ -33,6 +38,10 @@ export default class PasteLink extends Plugin {
 			clipboardData.preventDefault();
 			clipboardData.stopPropagation();
 		}
+	}
+
+	_registerCommands() {
+		this.editor.commands.add( 'applyLink', new ApplyLinkCommand( this.editor ) );
 	}
 }
 
