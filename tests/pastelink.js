@@ -34,26 +34,38 @@ describe( 'PasteLink', () => {
 
 	describe( 'clipboard integration', () => {
 		describe( 'valid URL interception', () => {
-			it( 'works for plain text', () => {
-				const dataTransfer = new DataTransfer();
-				const pasteStub = sinon.stub();
-				const preventDefaultStub = sinon.stub();
+			generateValidPlainTextTestCase( 'https://reddit.com' );
+			generateValidPlainTextTestCase( 'http://reddit.com' );
+			generateValidPlainTextTestCase( 'http://reddit.com#with-some-hash' );
+			generateValidPlainTextTestCase( 'http://reddit.com?with=some+query' );
+			generateValidPlainTextTestCase( 'http://foo.dev' );
+			generateValidPlainTextTestCase( 'https://101.101.101.101' );
+			generateValidPlainTextTestCase( 'https://101.101.101.101/' );
+			generateValidPlainTextTestCase( 'http://foo.local/document.txt' );
 
-				const doc = editor.editing.view.document;
+			function generateValidPlainTextTestCase( pastedPlainText ) {
+				it( `works for plain text: ${ pastedPlainText }`, () => {
+					const dataTransfer = new DataTransfer();
+					dataTransfer.setData( 'text/plain', pastedPlainText );
+					const pasteStub = sinon.stub();
+					const preventDefaultStub = sinon.stub();
 
-				doc.on( 'paste', pasteStub, {
-					priority: 'low'
+					const doc = editor.editing.view.document;
+
+					doc.on( 'paste', pasteStub, {
+						priority: 'low'
+					} );
+
+					doc.fire( 'paste', {
+						dataTransfer,
+						preventDefault: preventDefaultStub,
+						stopPropagation: sinon.stub()
+					} );
+
+					expect( preventDefaultStub.calledOnce ).to.be.true;
+					expect( pasteStub.callCount ).to.equal( 0 );
 				} );
-
-				doc.fire( 'paste', {
-					dataTransfer,
-					preventDefault: preventDefaultStub,
-					stopPropagation: sinon.stub()
-				} );
-
-				expect( preventDefaultStub.calledOnce ).to.be.true;
-				expect( pasteStub.callCount ).to.equal( 0 );
-			} );
+			}
 		} );
 
 		describe( 'invalid URL handling', () => {
