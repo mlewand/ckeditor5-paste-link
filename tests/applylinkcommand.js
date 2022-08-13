@@ -128,5 +128,25 @@ describe( 'ApplyLinkCommand', () => {
 
 			expect( command._canExecuteFor( model.document.selection ) ).to.be.true;
 		} );
+
+		describe( 'collapsed selection handling', () => {
+			it( 'works correctly with a single collapsed range', () => {
+				setData( model, '<paragraph>f[]oo</paragraph>' );
+
+				expect( command._canExecuteFor( model.document.selection ) ).to.be.false;
+			} );
+
+			it( 'works correctly with multiple collapsed ranges', () => {
+				setData( model, '<paragraph>f[]oo[]</paragraph>' );
+
+				expect( command._canExecuteFor( model.document.selection ) ).to.be.false;
+			} );
+
+			it( 'works correctly with mixed collapsed ranges and valid range', () => {
+				setData( model, '<paragraph>[]f[o]o[]</paragraph>' );
+
+				expect( command._canExecuteFor( model.document.selection ) ).to.be.true;
+			} );
+		} );
 	} );
 } );
