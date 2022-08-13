@@ -26,7 +26,8 @@
     "ckeditor5-metadata.json"
   ],
   "dependencies": {
-    "ckeditor5": ">=35.0.1"
+    "ckeditor5": ">=35.0.1",
+    "@ckeditor/ckeditor5-link": ">=35.0.1"
   },
   "devDependencies": {
     "@ckeditor/ckeditor5-autoformat": ">=35.0.1",
@@ -40,7 +41,6 @@
     "@ckeditor/ckeditor5-image": ">=35.0.1",
     "@ckeditor/ckeditor5-indent": ">=35.0.1",
     "@ckeditor/ckeditor5-inspector": ">=4.1.0",
-    "@ckeditor/ckeditor5-link": ">=35.0.1",
     "@ckeditor/ckeditor5-list": ">=35.0.1",
     "@ckeditor/ckeditor5-media-embed": ">=35.0.1",
     "@ckeditor/ckeditor5-package-tools": "^1.0.0-beta.5",

@@ -1,10 +1,15 @@
 import { Plugin } from 'ckeditor5/src/core';
+import { LinkEditing } from '@ckeditor/ckeditor5-link';
 
-/* global console, URL */
+/* global URL */
 
 const HANDLED_PROTOCOLS = [ 'http', 'https' ];
 
 export default class PasteLink extends Plugin {
+	static get requires() {
+		return [ LinkEditing ];
+	}
+
 	static get pluginName() {
 		return 'PasteLink';
 	}
@@ -16,14 +21,18 @@ export default class PasteLink extends Plugin {
 		this.listenTo( viewDocument, 'paste', ( eventInfo, clipboardData ) => {
 			const pastedURL = clipboardData.dataTransfer.getData( 'text/plain' );
 
-			if ( isValidURL( pastedURL ) ) {
-				console.log( 'handled' );
-				eventInfo.stop();
-				clipboardData.preventDefault();
-				clipboardData.stopPropagation();
-				return false;
+			if ( !isValidURL( pastedURL ) ) {
+				return;
 			}
+
+			stopEvents( eventInfo, clipboardData );
 		} );
+
+		function stopEvents( eventInfo, clipboardData ) {
+			eventInfo.stop();
+			clipboardData.preventDefault();
+			clipboardData.stopPropagation();
+		}
 	}
 }
 
