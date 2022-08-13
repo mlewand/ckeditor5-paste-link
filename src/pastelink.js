@@ -4,7 +4,7 @@ import ApplyLinkCommand from './applylinkcommand';
 
 /* global URL */
 
-const HANDLED_PROTOCOLS = [ 'http', 'https' ];
+const DEFAULT_PROTOCOLS = [ 'http', 'https' ];
 
 export default class PasteLink extends Plugin {
 	static get requires() {
@@ -16,15 +16,18 @@ export default class PasteLink extends Plugin {
 	}
 
 	init() {
+		this._registerCommands();
+		this._addPasteListener();
+	}
+
+	_addPasteListener() {
 		const { editor } = this;
 		const viewDocument = editor.editing.view.document;
-
-		this._registerCommands();
 
 		this.listenTo( viewDocument, 'paste', ( eventInfo, clipboardData ) => {
 			const pastedURL = clipboardData.dataTransfer.getData( 'text/plain' );
 
-			if ( !isValidURL( pastedURL ) ) {
+			if ( !isValidURL( pastedURL, editor.config.get( 'pasteLink.protocols' ) ) ) {
 				return;
 			}
 
@@ -41,6 +44,24 @@ export default class PasteLink extends Plugin {
 			stopEvents( eventInfo, clipboardData );
 		} );
 
+		/**
+		 * @param {String} url URL to be tested.
+		 * @param {Array.<String>} [supportedProtocols] A list of allowed protocols.
+		 * @returns {Boolean} `true` if given `url` is a valid URL.
+		 */
+		function isValidURL( url, supportedProtocols ) {
+			try {
+				const parsedUrl = new URL( url );
+
+				// The browser is adding a colon at the end of value, strip it.
+				const protocol = parsedUrl.protocol.toLocaleLowerCase().substring( 0, parsedUrl.protocol.length - 1 );
+
+				return ( supportedProtocols || DEFAULT_PROTOCOLS ).includes( protocol );
+			} catch ( error ) {
+				return false;
+			}
+		}
+
 		function stopEvents( eventInfo, clipboardData ) {
 			eventInfo.stop();
 			clipboardData.preventDefault();
@@ -50,18 +71,5 @@ export default class PasteLink extends Plugin {
 
 	_registerCommands() {
 		this.editor.commands.add( 'applyLink', new ApplyLinkCommand( this.editor ) );
-	}
-}
-
-function isValidURL( url ) {
-	try {
-		const parsedUrl = new URL( url );
-
-		// The browser is adding a colon at the end of value, strip it.
-		const protocol = parsedUrl.protocol.toLocaleLowerCase().substring( 0, parsedUrl.protocol.length - 1 );
-
-		return HANDLED_PROTOCOLS.includes( protocol );
-	} catch ( error ) {
-		return false;
 	}
 }
