@@ -1,6 +1,6 @@
 {
   "name": "@mlewand/ckeditor5-paste-link",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CKEditor 5 plugin that links the selected content with an URL from the clipboard.",
   "keywords": [
     "ckeditor",
