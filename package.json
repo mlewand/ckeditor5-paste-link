@@ -12,6 +12,13 @@
     "ckeditor5-plugin",
     "ckeditor5-dll"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlewand/ckeditor5-paste-link.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mlewand/ckeditor5-paste-link/issues"
+  },
   "main": "src/index.js",
   "license": "MIT",
   "engines": {
